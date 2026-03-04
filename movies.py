@@ -42,6 +42,7 @@ def add_movie():
             print(f"Error: {data.get('Error', 'Movie not found in OMDb!')}")
             return
 
+        # 1. Daten aus der API extrahieren
         title = data.get("Title")
         year_str = data.get("Year", "0")
         year = int(year_str[:4]) if year_str != "N/A" else 0
@@ -52,8 +53,10 @@ def add_movie():
             rating = 0.0
 
         poster = data.get("Poster", "N/A")
+        imdb_id = data.get("imdbID")
 
-        storage.add_movie(title, year, rating, poster)
+        storage.add_movie(title, year, rating, poster, imdb_id)
+
         print(f"Successfully added '{title}' ({year}) with Rating {rating}.")
 
     except requests.exceptions.ConnectionError:
@@ -171,19 +174,23 @@ def sorted_movies():
 
 
 def generate_website():
-    """Generate an HTML website using the template in the _static folder."""
+    """Generate HTML with clickable posters linking to IMDB."""
     movies = storage.list_movies()
-
-    # 1. Build the movie grid HTML
     movie_grid_html = ""
+
     for title, data in movies.items():
         year = data.get("year")
         rating = data.get("rating")
         poster = data.get("poster")
+        imdb_id = data.get("imdb_id")
+
+        imdb_url = f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else f"https://www.imdb.com/find?q={title}"
 
         movie_grid_html += '<li>\n'
         movie_grid_html += '    <div class="movie">\n'
-        movie_grid_html += f'        <img class="movie-poster" src="{poster}" alt="{title} poster">\n'
+        movie_grid_html += f'        <a href="{imdb_url}" target="_blank">\n'
+        movie_grid_html += f'            <img class="movie-poster" src="{poster}" alt="{title} poster">\n'
+        movie_grid_html += '        </a>\n'
         movie_grid_html += f'        <div class="movie-title">{title}</div>\n'
         movie_grid_html += f'        <div class="movie-year">{year}</div>\n'
         movie_grid_html += f'        <div class="movie-rating">Rating: {rating}</div>\n'

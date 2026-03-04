@@ -6,37 +6,55 @@ engine = create_engine(DB_URL)
 
 
 def init_db():
-    """Initialize the database and create the table with a poster column."""
+    """Initialize the database and create the table with all necessary columns."""
     with engine.connect() as connection:
         connection.execute(text("""
-            CREATE TABLE IF NOT EXISTS movies (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT UNIQUE NOT NULL,
-                year INTEGER NOT NULL,
-                rating REAL NOT NULL,
-                poster TEXT
-            )
-        """))
+                                CREATE TABLE IF NOT EXISTS movies
+                                (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    title TEXT UNIQUE NOT NULL,
+                                    year INTEGER NOT NULL,
+                                    rating REAL NOT NULL,
+                                    poster TEXT,
+                                    imdb_id TEXT
+                                    )
+                                """))
         connection.commit()
 
-def add_movie(title, year, rating, poster_url):
-    """Add a new movie including its poster URL."""
+
+def add_movie(title, year, rating, poster_url, imdb_id):
+    """Add a new movie including its poster URL and IMDB ID."""
     with engine.connect() as connection:
         try:
             connection.execute(text("""
-                INSERT INTO movies (title, year, rating, poster) 
-                VALUES (:title, :year, :rating, :poster)
-            """), {"title": title, "year": year, "rating": rating, "poster": poster_url})
+                                    INSERT INTO movies (title, year, rating, poster, imdb_id)
+                                    VALUES (:title, :year, :rating, :poster, :imdb_id)
+                                    """), {
+                                   "title": title,
+                                   "year": year,
+                                   "rating": rating,
+                                   "poster": poster_url,
+                                   "imdb_id": imdb_id
+                               })
             connection.commit()
         except Exception as error:
             print(f"Database error: {error}")
 
+
 def list_movies():
-    """Retrieve all movies including posters."""
+    """Retrieve all movies including posters and IMDB IDs."""
     with engine.connect() as connection:
-        result = connection.execute(text("SELECT title, year, rating, poster FROM movies"))
+        result = connection.execute(text("SELECT title, year, rating, poster, imdb_id FROM movies"))
         movies = result.fetchall()
-    return {row[0]: {"year": row[1], "rating": row[2], "poster": row[3]} for row in movies}
+
+    return {
+        row[0]: {
+            "year": row[1],
+            "rating": row[2],
+            "poster": row[3],
+            "imdb_id": row[4]
+        } for row in movies
+    }
 
 
 def delete_movie(title):
