@@ -170,8 +170,58 @@ def sorted_movies():
         print(f"{title} ({year}): {rating}")
 
 
+def generate_website():
+    """Generate an HTML website using the template in the _static folder."""
+    movies = storage.list_movies()
+
+    # 1. Build the movie grid HTML
+    movie_grid_html = ""
+    for title, data in movies.items():
+        year = data.get("year")
+        rating = data.get("rating")
+        poster = data.get("poster")
+
+        movie_grid_html += '<li>\n'
+        movie_grid_html += '    <div class="movie">\n'
+        movie_grid_html += f'        <img class="movie-poster" src="{poster}" alt="{title} poster">\n'
+        movie_grid_html += f'        <div class="movie-title">{title}</div>\n'
+        movie_grid_html += f'        <div class="movie-year">{year}</div>\n'
+        movie_grid_html += '    </div>\n'
+        movie_grid_html += '</li>\n'
+
+    template_path = os.path.join("_static", "index_template.html")
+
+    try:
+        with open(template_path, "r", encoding="utf-8") as file:
+            template_content = file.read()
+
+        new_content = template_content.replace("__TEMPLATE_TITLE__", "My Movie App")
+        new_content = new_content.replace("__TEMPLATE_MOVIE_GRID__", movie_grid_html)
+
+        with open("index.html", "w", encoding="utf-8") as file:
+            file.write(new_content)
+
+        print("Website was generated successfully.")
+
+    except FileNotFoundError:
+        print(f"Error: '{template_path}' not found. Please check your _static directory.")
+    except Exception as error:
+        print(f"An unexpected error occurred: {error}")
+
+
 def main():
     storage.init_db()
+    actions = {
+        "1": list_movies,
+        "2": add_movie,
+        "3": delete_movie,
+        "4": update_movie,
+        "5": stats,
+        "6": random_movie,
+        "7": search_movie,
+        "8": sorted_movies,
+        "9": generate_website
+    }
     print("\n********** My Movies Database **********")
 
     while True:
@@ -185,7 +235,8 @@ def main():
             "5. Stats\n"
             "6. Random movie\n"
             "7. Search movie\n"
-            "8. Movies sorted by rating"
+            "8. Movies sorted by rating\n"
+            "9. Generate website"
         )
 
         choice = input("\nEnter choice (0-8): ")
@@ -194,30 +245,9 @@ def main():
             print("Bye!")
             break
 
-        if choice == "1":
-            list_movies()
-
-        elif choice == "2":
-            add_movie()
-
-        elif choice == "3":
-            delete_movie()
-
-        elif choice == "4":
-            update_movie()
-
-        elif choice == "5":
-            stats()
-
-        elif choice == "6":
-            random_movie()
-
-        elif choice == "7":
-            search_movie()
-
-        elif choice == "8":
-            sorted_movies()
-
+        if choice in actions:
+            actions[choice]()
+            input("\nPress Enter to continue...")
         else:
             print("Invalid choice, please try again.")
 
