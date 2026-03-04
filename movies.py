@@ -247,7 +247,7 @@ def main():
             "9. Generate website"
         )
 
-        choice = input("\nEnter choice (0-8): ")
+        choice = input("\nEnter choice (0-9): ")
 
         if choice == "0":
             print("Bye!")
