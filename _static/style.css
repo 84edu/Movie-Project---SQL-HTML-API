@@ -50,3 +50,10 @@ body {
     width: 128px;
     height: 193px;
 }
+
+.movie-rating {
+    font-style: italic;
+    color: #f39c12;
+    font-size: 0.9em;
+    text-align: center;
+}

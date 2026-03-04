@@ -186,6 +186,7 @@ def generate_website():
         movie_grid_html += f'        <img class="movie-poster" src="{poster}" alt="{title} poster">\n'
         movie_grid_html += f'        <div class="movie-title">{title}</div>\n'
         movie_grid_html += f'        <div class="movie-year">{year}</div>\n'
+        movie_grid_html += f'        <div class="movie-rating">Rating: {rating}</div>\n'
         movie_grid_html += '    </div>\n'
         movie_grid_html += '</li>\n'
 
