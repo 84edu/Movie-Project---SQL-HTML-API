@@ -1,52 +1,65 @@
-import random
-import statistics
+import random, requests, statistics, os
 import movie_storage_sql as storage
+from dotenv import load_dotenv
 
+load_dotenv()
+
+OMDB_API_KEY = os.getenv('API_KEY')
+BASE_URL = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t="
+
+if not OMDB_API_KEY:
+    raise ValueError("No API_KEY found in environment variables!")
 
 def list_movies():
-    """Retrieve and display all movies from the database."""
+    """Retrieve and display all movies including the poster data."""
     movies = storage.list_movies()
-    print(f"{len(movies)} movies in total")
+    print(f"\n{len(movies)} movies in total:")
     for title, data in movies.items():
-        rating = data.get("rating")
         year = data.get("year")
-        print(f"{title} ({year}): {rating}")
+        rating = data.get("rating")
+        poster = data.get("poster")
+        print(f"- {title} ({year}): {rating} | Poster: {poster}")
 
 
 def add_movie():
-    """Add a new movie to the database."""
+    """Fetch movie data from OMDb API and save it to the database."""
+    movie_title = input("Enter the movie name: ").strip()
+    if not movie_title:
+        print("The movie name cannot be empty!")
+        return
+
     movies = storage.list_movies()
-    while True:
-        movie_name = input("Enter the movie name: ").strip()
-        if not movie_name:
-            print("The movie name cannot be empty!")
-            continue
-        existing_movies = [title.lower() for title in movies.keys()]
-        if movie_name.lower() in existing_movies:
-            print(f"The movie {movie_name} is on our database. Please enter another movie.")
-            continue
-        break
+    if movie_title.lower() in [title.lower() for title in movies.keys()]:
+        print(f"Movie '{movie_title}' already exists in the database.")
+        return
 
-    while True:
+    try:
+        response = requests.get(BASE_URL + movie_title, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("Response") == "False":
+            print(f"Error: {data.get('Error', 'Movie not found in OMDb!')}")
+            return
+
+        title = data.get("Title")
+        year_str = data.get("Year", "0")
+        year = int(year_str[:4]) if year_str != "N/A" else 0
+
         try:
-            movie_rating = float(input("Enter the movie Rating (1-10): "))
-            if 1 <= movie_rating <= 10:
-                break
-            print("Please enter a rating between 1 and 10.")
+            rating = float(data.get("imdbRating", 0.0))
         except ValueError:
-            print("Invalid input! Please enter a number for the rating.")
+            rating = 0.0
 
-    while True:
-        try:
-            movie_year = int(input("Enter the year of release (yyyy): "))
-            if 1888 <= movie_year <= 2026:
-                break
-            print("Please enter a realistic year between 1888 and 2026 (e.g., 1994).")
-        except ValueError:
-            print("Invalid input! Please enter a valid year.")
+        poster = data.get("Poster", "N/A")
 
-    storage.add_movie(movie_name, movie_year, movie_rating)
-    print(f"Movie '{movie_name}' added successfully!")
+        storage.add_movie(title, year, rating, poster)
+        print(f"Successfully added '{title}' ({year}) with Rating {rating}.")
+
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to the API. Check your internet connection.")
+    except Exception as error:
+        print(f"An unexpected error occurred: {error}")
 
 
 def delete_movie():
@@ -158,6 +171,7 @@ def sorted_movies():
 
 
 def main():
+    storage.init_db()
     print("\n********** My Movies Database **********")
 
     while True:

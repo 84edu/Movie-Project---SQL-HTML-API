@@ -211,3 +211,7 @@ __marimo__/
 .DS_Store?
 ._*
 Thumbs.db
+
+# Database files
+movies.db
+*.sqlite3
