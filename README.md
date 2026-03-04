@@ -20,7 +20,7 @@ To run the project locally, follow these steps:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [<your-repository-url>](https://github.com/84edu/Movie-Project---SQL-HTML-API.git)
+    git clone <https://github.com/84edu/Movie-Project---SQL-HTML-API.git>
     cd Movie-Project---SQL-HTML-API
     ```
 
